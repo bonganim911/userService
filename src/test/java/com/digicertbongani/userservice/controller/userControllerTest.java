@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
@@ -44,7 +45,7 @@ public class userControllerTest {
     @Test
     public void shouldReturnUserGivenId() throws Exception {
         User mockUser = new User(1L, "Eric","Thomas","erict@user.com");
-        when(userService.getUser(mockUser.getId())).thenReturn(mockUser);
+        when(userService.getUser(mockUser.getId())).thenReturn(Optional.of(mockUser));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/users/1"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -58,9 +59,9 @@ public class userControllerTest {
     @Test
     public void shouldReturnUserNotFoundGivenUserIdDoesExist() throws Exception {
 
-        when(userService.getUser(0L)).thenReturn(null);
+        when(userService.getUser(0L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/users/1"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/users/0"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
 
     }

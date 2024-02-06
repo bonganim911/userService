@@ -11,6 +11,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -44,5 +45,17 @@ public class UserServiceTest {
 
 
         assertTrue(!users.isEmpty());
+    }
+
+    @Test
+    public void shouldReturnAUsersGivenUserId(){
+
+        User actualUser = new User(1L, "Eric","Thomas","erict@user.com");
+
+        when(userRepository.findById(actualUser.getId())).thenReturn(Optional.of(actualUser));
+
+        Optional<User> expectedUser = userService.getUser(actualUser.getId());
+
+        assertEquals(expectedUser.get().getId(),actualUser.getId());
     }
 }
