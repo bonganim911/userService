@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createANewUser(User user) {
+    public User createUser(User user) {
         return null;
     }
 
@@ -31,5 +31,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateExistingUser(long userId, User user) {
         return null;
+    }
+
+    @Override
+    public boolean deleteUser(long id) {
+        return false;
     }
 }

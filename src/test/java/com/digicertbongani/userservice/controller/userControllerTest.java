@@ -19,9 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
@@ -44,7 +45,7 @@ public class userControllerTest {
         when(userService.getAllUsers()).thenReturn(mockUsers);
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(3)));
+                .andExpect(jsonPath("$", Matchers.hasSize(3)));
     }
 
     @Test
@@ -55,9 +56,9 @@ public class userControllerTest {
         mockMvc.perform(get("/users/1"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.firstName", Matchers.is("Eric")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.email", Matchers.is("erict@user.com")));
+                .andExpect(jsonPath("$.id", Matchers.is(1)))
+                .andExpect(jsonPath("$.firstName", Matchers.is("Eric")))
+                .andExpect(jsonPath("$.email", Matchers.is("erict@user.com")));
 
     }
 
@@ -69,6 +70,21 @@ public class userControllerTest {
         mockMvc.perform(get("/users/0"))
                 .andExpect(status().isNotFound());
 
+    }
+
+    @Test
+    public void testShouldCreateUser() throws Exception {
+        User newUser = new User(1L, "Eric","Thomas","erict@user.com");
+
+        Mockito.when(userService.createUser(Mockito.any(User.class))).thenReturn(newUser);
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(newUser)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", Matchers.is(1)))
+                .andExpect(jsonPath("$.firstName", Matchers.is("Eric")))
+                .andExpect(jsonPath("$.email", Matchers.is("erict@user.com")));
     }
 
     @Test
@@ -88,11 +104,32 @@ public class userControllerTest {
     public void testShouldReturnNotFoundGivenTheUserDoesNotExist() throws Exception {
         User updatedUser = new User(2L, "Jane","Doe","jane@example.com");
 
-        Mockito.when(userService.updateExistingUser(2L, updatedUser)).thenReturn(null);
+        when(userService.updateExistingUser(2L, updatedUser)).thenReturn(null);
 
         mockMvc.perform(put("/users/2")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(updatedUser)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testShouldDeleteUserGivenUserId() throws Exception {
+        when(userService.deleteUser(2L)).thenReturn(true);
+
+        mockMvc.perform(delete("/users/2"))
+                .andExpect(status().isNoContent());
+
+    }
+
+    @Test
+    public void testShouldNotDeleteUserGivenUseIdDoesNotExist() throws Exception {
+        long userId = 15L;
+
+
+        Mockito.when(userService.deleteUser(userId)).thenReturn(false);
+
+
+        mockMvc.perform(delete("/users/{id}", userId))
                 .andExpect(status().isNotFound());
     }
 
