@@ -2,8 +2,10 @@ package com.digicertbongani.userservice.controller;
 
 import com.digicertbongani.userservice.model.User;
 import com.digicertbongani.userservice.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,6 +20,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc
@@ -37,8 +42,8 @@ public class userControllerTest {
         mockUsers.add(new User(3L, "Lucky","Shepard","luckys@user.com"));
 
         when(userService.getAllUsers()).thenReturn(mockUsers);
-        mockMvc.perform(MockMvcRequestBuilders.get("/users"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
+        mockMvc.perform(get("/users"))
+                .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(3)));
     }
 
@@ -47,8 +52,8 @@ public class userControllerTest {
         User mockUser = new User(1L, "Eric","Thomas","erict@user.com");
         when(userService.getUser(mockUser.getId())).thenReturn(Optional.of(mockUser));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/users/1"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
+        mockMvc.perform(get("/users/1"))
+                .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(1)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.firstName", Matchers.is("Eric")))
@@ -61,8 +66,41 @@ public class userControllerTest {
 
         when(userService.getUser(0L)).thenReturn(Optional.empty());
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/users/0"))
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+        mockMvc.perform(get("/users/0"))
+                .andExpect(status().isNotFound());
 
+    }
+
+    @Test
+    public void shouldReturnUpdatedUserGivenUserId() throws Exception {
+        User updatedUser = new User(1L, "Tommy", "Hilfiger", "tommyh@user.com");
+
+        when(userService.updateExistingUser(1L, updatedUser)).thenReturn(updatedUser);
+
+        mockMvc.perform(put("/users/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(updatedUser)))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void testShouldReturnNotFoundGivenTheUserDoesNotExist() throws Exception {
+        User updatedUser = new User(2L, "Jane","Doe","jane@example.com");
+
+        Mockito.when(userService.updateExistingUser(2L, updatedUser)).thenReturn(null);
+
+        mockMvc.perform(put("/users/2")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(updatedUser)))
+                .andExpect(status().isNotFound());
+    }
+
+    private static String asJsonString(final Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

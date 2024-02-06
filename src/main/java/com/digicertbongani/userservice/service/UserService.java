@@ -12,5 +12,5 @@ public interface UserService {
 
     Optional<User> getUser(Long id);
 
-    User updateExistingUser(User user);
+    User updateExistingUser(long userId, User user);
 }
