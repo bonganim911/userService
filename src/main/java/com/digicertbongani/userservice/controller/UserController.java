@@ -13,8 +13,12 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private final UserService userService;
+
     @Autowired
-    private UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public List<User> getUsers(){
@@ -26,7 +30,6 @@ public class UserController {
         Optional<User> user = userService.getUser(userId);
         if(user.isPresent())
             return ResponseEntity.ok(user);
-
         return ResponseEntity.notFound().build();
     }
 

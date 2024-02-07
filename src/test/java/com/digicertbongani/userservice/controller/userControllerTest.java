@@ -2,8 +2,10 @@ package com.digicertbongani.userservice.controller;
 
 import com.digicertbongani.userservice.model.User;
 import com.digicertbongani.userservice.service.UserService;
+import com.digicertbongani.userservice.util.UserBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +14,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -35,12 +37,31 @@ public class userControllerTest {
     @MockBean
     private UserService userService;
 
+    User commonUser;
+    @BeforeEach
+    public void setup(){
+        commonUser = UserBuilder.builder()
+                .id(1L)
+                .firstName("Eric")
+                .lastName("Thomas")
+                .email("erict@user.com")
+                .build();
+    }
+
     @Test
     public void shouldReturnAllUsers() throws Exception {
         List<User> mockUsers = new ArrayList<>();
-        mockUsers.add(new User(1L, "Eric","Thomas","erict@user.com"));
-        mockUsers.add(new User(2L, "Stephen","Mitchel","stephenm@user.com"));
-        mockUsers.add(new User(3L, "Lucky","Shepard","luckys@user.com"));
+        mockUsers.add(commonUser);
+        mockUsers.add(UserBuilder.builder()
+                .id(2L).firstName("Stephen")
+                .lastName("Mitchel")
+                .email("stephenm@user.com")
+                .build());
+        mockUsers.add(UserBuilder.builder()
+                .id(3L).firstName("Lucky")
+                .lastName("Shepard")
+                .email("luckys@user.com")
+                .build());
 
         when(userService.getAllUsers()).thenReturn(mockUsers);
         mockMvc.perform(get("/users"))
@@ -50,8 +71,7 @@ public class userControllerTest {
 
     @Test
     public void shouldReturnUserGivenId() throws Exception {
-        User mockUser = new User(1L, "Eric","Thomas","erict@user.com");
-        when(userService.getUser(mockUser.getId())).thenReturn(Optional.of(mockUser));
+        when(userService.getUser(commonUser.getId())).thenReturn(Optional.of(commonUser));
 
         mockMvc.perform(get("/users/1"))
                 .andExpect(status().isOk())
@@ -74,13 +94,12 @@ public class userControllerTest {
 
     @Test
     public void testShouldCreateUser() throws Exception {
-        User newUser = new User(1L, "Eric","Thomas","erict@user.com");
 
-        Mockito.when(userService.createUser(Mockito.any(User.class))).thenReturn(newUser);
+        Mockito.when(userService.createUser(Mockito.any(User.class))).thenReturn(commonUser);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(newUser)))
+                        .content(asJsonString(commonUser)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", Matchers.is(1)))
                 .andExpect(jsonPath("$.firstName", Matchers.is("Eric")))
@@ -89,7 +108,12 @@ public class userControllerTest {
 
     @Test
     public void shouldReturnUpdatedUserGivenUserId() throws Exception {
-        User updatedUser = new User(1L, "Tommy", "Hilfiger", "tommyh@user.com");
+        User updatedUser = UserBuilder.builder()
+                .id(1L).firstName("Tommy")
+                .lastName("Hilfiger")
+                .email("tommyh@user.com")
+                .build();
+
 
         when(userService.updateExistingUser(1L, updatedUser)).thenReturn(updatedUser);
 
@@ -102,13 +126,11 @@ public class userControllerTest {
 
     @Test
     public void testShouldReturnNotFoundGivenTheUserDoesNotExist() throws Exception {
-        User updatedUser = new User(2L, "Jane","Doe","jane@example.com");
-
-        when(userService.updateExistingUser(2L, updatedUser)).thenReturn(null);
+        when(userService.updateExistingUser(22L, commonUser)).thenReturn(null);
 
         mockMvc.perform(put("/users/2")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(updatedUser)))
+                        .content(asJsonString(commonUser)))
                 .andExpect(status().isNotFound());
     }
 

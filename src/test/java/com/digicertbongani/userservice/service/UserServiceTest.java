@@ -3,6 +3,7 @@ package com.digicertbongani.userservice.service;
 import com.digicertbongani.userservice.model.User;
 import com.digicertbongani.userservice.repository.UserRepository;
 import com.digicertbongani.userservice.repository.UserServiceImpl;
+import com.digicertbongani.userservice.util.UserBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -25,66 +26,76 @@ public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+
+    User commonUser;
+
     @BeforeEach
-    public void setup(){
+    public void setup() {
+        commonUser = UserBuilder.builder()
+                .id(1L)
+                .firstName("Eric")
+                .lastName("Thomas")
+                .email("erict@user.com")
+                .build();
         MockitoAnnotations.initMocks(this);
     }
 
     @Test
-    public void shouldReturnAllUsers(){
-
+    public void shouldReturnAllUsers() {
         List<User> mockUsers = new ArrayList<>();
-        mockUsers.add(new User(1L, "Eric","Thomas","erict@user.com"));
-        mockUsers.add(new User(2L, "Stephen","Mitchel","stephenm@user.com"));
-        mockUsers.add(new User(3L, "Lucky","Shepard","luckys@user.com"));
+        mockUsers.add(commonUser);
+        mockUsers.add(UserBuilder.builder()
+                .id(2L).firstName("Stephen")
+                .lastName("Mitchel")
+                .email("stephenm@user.com")
+                .build());
+        mockUsers.add(UserBuilder.builder()
+                .id(3L).firstName("Lucky")
+                .lastName("Shepard")
+                .email("luckys@user.com")
+                .build());
 
         when(userRepository.findAll()).thenReturn(mockUsers);
 
         List<User> users = userService.getAllUsers();
 
-        assertEquals(users.size(),mockUsers.size());
-
-
-        assertTrue(!users.isEmpty());
+        assertEquals(users.size(), mockUsers.size());
+        assertFalse(users.isEmpty());
     }
 
     @Test
-    public void shouldReturnAUsersGivenUserId(){
+    public void shouldReturnAUsersGivenUserId() {
 
-        User actualUser = new User(1L, "Eric","Thomas","erict@user.com");
+        when(userRepository.findById(commonUser.getId())).thenReturn(Optional.of(commonUser));
 
-        when(userRepository.findById(actualUser.getId())).thenReturn(Optional.of(actualUser));
+        Optional<User> expectedUser = userService.getUser(commonUser.getId());
 
-        Optional<User> expectedUser = userService.getUser(actualUser.getId());
-
-        assertEquals(expectedUser.get().getId(),actualUser.getId());
+        assertEquals(expectedUser.get().getId(), commonUser.getId());
     }
 
     @Test
-    public void shouldCreatNewUserAndReturnThatUser(){
-        User user = new User(1L, "Eric","Thomas","erict@user.com");
-        when(userRepository.save(user)).thenReturn(user);
+    public void shouldCreatNewUserAndReturnThatUser() {
+        when(userRepository.save(commonUser)).thenReturn(commonUser);
 
-        User newUser = userService.createUser(user);
+        User newUser = userService.createUser(commonUser);
 
-        assertEquals(user.getId(), newUser.getId());
+        assertEquals(newUser.getId(), commonUser.getId());
 
     }
 
     @Test
-    public void shouldDeleteUserGivenThatUserExist(){
+    public void shouldDeleteUserGivenThatUserExist() {
         long userId = 1L;
-        User user = new User(1L, "Eric","Thomas","erict@user.com");
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(commonUser));
         boolean result = userService.deleteUser(userId);
 
         assertTrue(result);
-        verify(userRepository).delete(user);
+        verify(userRepository).delete(commonUser);
     }
 
     @Test
-    public void shouldNotBeAbleToDeleteUserGivenThatUserDoesNotExist(){
+    public void shouldNotBeAbleToDeleteUserGivenThatUserDoesNotExist() {
         long userId = 1L;
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -94,26 +105,24 @@ public class UserServiceTest {
     }
 
     @Test
-    public void shouldReturnUpdatedUserGivenUserIdAndUserObject(){
+    public void shouldReturnUpdatedUserGivenUserIdAndUserObject() {
         long userId = 1L;
-        User user = new User(1L, "Eric","Thomas","erict@user.com");
 
         when(userRepository.existsById(userId)).thenReturn(true);
-        when(userRepository.save(user)).thenReturn(user);
+        when(userRepository.save(commonUser)).thenReturn(commonUser);
 
-        User updatedUser = userService.updateExistingUser(userId, user);
+        User updatedUser = userService.updateExistingUser(userId, commonUser);
 
-        assertEquals(user.getId(), updatedUser.getId());
+        assertEquals(updatedUser.getId(), commonUser.getId());
     }
 
     @Test
-    public void shouldNotUpdatedUserGivenUserDoesNotExist(){
+    public void shouldNotUpdatedUserGivenUserDoesNotExist() {
         long userId = 1L;
-        User user = new User(1L, "Eric","Thomas","erict@user.com");
 
         when(userRepository.existsById(userId)).thenReturn(false);
 
-        User updatedUser = userService.updateExistingUser(userId, user);
+        User updatedUser = userService.updateExistingUser(userId, commonUser);
 
         assertNull(updatedUser);
     }
