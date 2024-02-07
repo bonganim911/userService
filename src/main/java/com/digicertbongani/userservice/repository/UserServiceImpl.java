@@ -20,7 +20,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
-        return null;
+        return userRepository.save(user);
     }
 
     @Override
@@ -30,11 +30,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateExistingUser(long userId, User user) {
+        boolean userExist = userRepository.existsById(userId);
+        if (userExist)
+            return userRepository.save(user);
         return null;
     }
 
     @Override
     public boolean deleteUser(long id) {
+        Optional<User> existingUser = getUser(id);
+        if(existingUser.isPresent()) {
+            userRepository.delete(existingUser.get());
+            return true;
+        }
         return false;
     }
 }
