@@ -77,6 +77,7 @@ Build the project and run the all the tests.
 ### ` docker-compose up`
 
 # Trade-Off
-Building a user service container, base image used it is not as specified in the requirements. 
+- Building a user service container, base image used it is not as specified in the requirements.
+- DB credentials on docker file could be stored else where safer than exposed in the file.
 
 
