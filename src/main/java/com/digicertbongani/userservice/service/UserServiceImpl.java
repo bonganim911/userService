@@ -1,7 +1,7 @@
-package com.digicertbongani.userservice.repository;
+package com.digicertbongani.userservice.service;
 
 import com.digicertbongani.userservice.model.User;
-import com.digicertbongani.userservice.service.UserService;
+import com.digicertbongani.userservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

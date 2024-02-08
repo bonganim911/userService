@@ -2,7 +2,6 @@ package com.digicertbongani.userservice.service;
 
 import com.digicertbongani.userservice.model.User;
 import com.digicertbongani.userservice.repository.UserRepository;
-import com.digicertbongani.userservice.repository.UserServiceImpl;
 import com.digicertbongani.userservice.util.UserBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
