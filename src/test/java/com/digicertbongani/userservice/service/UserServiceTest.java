@@ -74,6 +74,17 @@ public class UserServiceTest {
     }
 
     @Test
+    public void shouldReturnNullGivenUserIdDoesNotExist() {
+        long userIdDoesNotExist = 12L;
+
+        when(userRepository.findById(userIdDoesNotExist)).thenReturn(Optional.empty());
+
+        Optional<User> expectedUser = userService.getUser(userIdDoesNotExist);
+
+        assertTrue(expectedUser.isEmpty());
+    }
+
+    @Test
     public void shouldCreatNewUserAndReturnThatUser() {
         when(userRepository.save(commonUser)).thenReturn(commonUser);
 
